@@ -14,7 +14,7 @@ docker run -p 3000:3000 -d my-node-app
 
 go to browser and hit URL http://localhost:3000/contact , you must see as following 
 
-![Screenshot](landing page.png)
+![Screenshot](landing_page.png)
 
 ## Developing
 
