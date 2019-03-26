@@ -20,7 +20,7 @@ go to browser and hit URL http://localhost:3000/json
 
 ![Screenshot](json_input.png)
 
-![Screenshot](validate_json.png)
+![Screenshot](validated_json.png)
 
 ## Developing
 
