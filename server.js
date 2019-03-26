@@ -11,6 +11,7 @@ const csrf = require('csurf')
 const routes = require('./routes')
 const app = express()
 
+app.use(bodyParser({limit: '4MB'}))
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 

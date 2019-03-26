@@ -2,7 +2,7 @@
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div class="form-field">
     <label for="message">Json String</label>
-    <textarea class="input" id="message" name="message" rows="4" autofocus><%= data.message %></textarea>
+    <textarea class="input" id="message" name="message" rows="30" autofocus><%= data.message %></textarea>
     <% if (errors.message) { %>
       <div class="error"><%= errors.message.msg %></div>
     <% } %>
