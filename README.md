@@ -16,6 +16,12 @@ go to browser and hit URL http://localhost:3000/contact , you must see as follow
 
 ![Screenshot](landing_page.png)
 
+go to browser and hit URL http://localhost:3000/json
+
+![Screenshot](json_input.png)
+
+![Screenshot](validate_json.png)
+
 ## Developing
 
 
