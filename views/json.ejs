@@ -1,0 +1,13 @@
+<form method="post" action="/json" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="form-field">
+    <label for="message">Json String</label>
+    <textarea class="input" id="message" name="message" rows="4" autofocus><%= data.message %></textarea>
+    <% if (errors.message) { %>
+      <div class="error"><%= errors.message.msg %></div>
+    <% } %>
+  </div>
+  <div class="form-actions">
+    <button class="btn" type="submit">Validate</button>
+  </div>
+</form>
