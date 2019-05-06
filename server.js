@@ -7,9 +7,15 @@ const cookieParser = require('cookie-parser')
 const session = require('express-session')
 const flash = require('express-flash')
 const csrf = require('csurf')
+const elasticsearch = require('elasticsearch');
 
 const routes = require('./routes')
 const app = express()
+
+const client = new elasticsearch.Client({
+    host: 'https://search-alagen-labs-es-demo-gwvhpmfya36soejrdqhjnycjwe.us-east-1.es.amazonaws.com',
+    log: 'error'
+ });
 
 app.use(bodyParser({limit: '4MB'}))
 app.set('views', path.join(__dirname, 'views'))

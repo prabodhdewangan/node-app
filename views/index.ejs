@@ -1,5 +1,11 @@
-<% if (messages.success) { %>
-  <div class="flash flash-success"><%= messages.success %></div>
-<% } %>
-
-<h1>Working With Forms in Node.js</h1>
+<h3><%= status %></h3>
+<h3><%= filename %></h3>
+<form id        =  "uploadForm"
+     enctype   =  "multipart/form-data"
+     action    =  "/upload?_csrf=<%= csrfToken %>"
+     method    =  "post"
+novalidate>
+  	
+	<input type="file" name="userFile" />
+	<input type="submit" value="Upload File" name="submit">
+</form>
