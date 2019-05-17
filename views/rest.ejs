@@ -1,0 +1,18 @@
+<form method="post" action="/rest" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="form-field <%= errorMap.link ? 'form-field-invalid' : '' %>">
+    <label for="link">Rest End Point</label>
+    <input class="input" id="link" name="link" type="link" value="<%= data.link %>" />
+    <% if (errors.link) { %>
+      <div class="error"><%= errors.link.msg %></div>
+    <% } %>
+  </div>
+  <div class="form-actions">
+    <button class="btn" type="submit">Send</button>
+  </div>
+  <% if (response) { %>
+	<h3><div class="flash"><%= response %></div></h3>
+  <% } %>	
+</form>
+
+

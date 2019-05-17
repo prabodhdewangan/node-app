@@ -1,9 +1,19 @@
 const elasticsearch = require('elasticsearch');
+var request = require('sync-request');
+
+exports.getData = function(restURL) {
+	console.log("restURL :" +restURL);
+	var res = request('GET', restURL);
+	console.log("res.getBody() :" + res.getBody());
+	var json = JSON.parse(res.getBody());
+	return JSON.stringify(json, null, " ");
+};
 
 const client = new elasticsearch.Client({
     host: 'https://search-alagen-labs-es-demo-gwvhpmfya36soejrdqhjnycjwe.us-east-1.es.amazonaws.com',
     log: 'error'
  });
+
 exports.uploadToES = function (indexName, esContent, start_utcseconds, end_utcseconds){
 	client.indices.create({
 	     index: indexName
@@ -16,14 +26,6 @@ exports.uploadToES = function (indexName, esContent, start_utcseconds, end_utcse
 	 });
 	
 	bulkIndex(indexName, 'doc', esContent, start_utcseconds, end_utcseconds)
-//	client.index({
-//	     index: indexName,
-//	     type: 'doc',
-//	     body: { esContent
-//	     }
-//	 }, function(err, resp, status) {
-//	     console.log(resp);
-//	 });
 }
 
 exports.paserJSON = function (rawJSON){
@@ -47,10 +49,6 @@ exports.paserJSON = function (rawJSON){
 	   		newJSONObj.reason_title_infos.push(object)
 	   }
 	}
-
-  
-  //newJSONObj.reason_title_infos=jsonObj.data.dashboard.reason_title_infos;
-  
   console.log('Sanitized: ', newJSONObj)
   return newJSONObj;
 }

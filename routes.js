@@ -6,6 +6,7 @@ const { matchedData } = require('express-validator/filter')
 const fs = require('fs');
 const utils = require('./utils');
 const moment = require('moment');
+const csv = require('csvtojson');
 
 exports.util = utils
 
@@ -47,35 +48,68 @@ router.post('/contact', [
   // Homework: send sanitized data in an email or persist in a db
 
   req.flash('success', 'Thanks for the message! I‘ll be in touch :)')
+  console.log("request :" + data.link)
   res.redirect('/')
 })
 
+router.get('/rest', (req, res) => {
+  res.render('rest', {
+    data: {},
+    errors: [],
+    response: '',
+    errorMap: {},
+    csrfToken: req.csrfToken()
+  })
+})
+
+router.post('/rest', [
+  check('link').isLength({ min: 10 }).isURL().withMessage('Invalid URL').trim()
+], (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.render('rest', {
+      data: req.body,
+      errors: errors.array(),
+      errorMap: errors.mapped(),
+      csrfToken: req.csrfToken()
+    })
+  }
+  const data = matchedData(req)
+  var response = '';
+  res.render('rest.ejs', { response:  utils.getData(data.link) , csrfToken: req.csrfToken(), data: data, errors: [], errorMap: {}});
+  console.log("request :" + data.link)
+})
+
+
 var upload = multer({ dest: '/tmp/' })
 router.post('/upload', upload.single('userFile'), function (req, res, next) {
-	console.log('Uploading file...' + req.file.mimetype + " : "+ req.file.detectedMimeType);  
+	console.log('Uploading file...' + req.file.mimetype + " : "+ req.file.detectedMimeType);
+	if (req.file) {
+        console.log('Uploading file...' + req.file.mimetype);
+        var filename = req.file.originalname;
+        var uploadStatus = 'File Uploaded Successfully';
+    } else {
+        console.log('No File Uploaded');
+        var filename = 'FILE NOT UPLOADED';
+        var uploadStatus = 'File Upload Failed';
+    }
+	var isCSV = false;
 	switch (req.file.mimetype) { 
-//	  case 'text/csv':
-//	    	break
+	  case 'text/csv':
+		    isCSV = true;
+	    	break
 	  case 'application/json':
 	    break
 	  default:
 	    return next(new Error('Unspported file type'))
 	}
-	  if (req.file) {
-	        console.log('Uploading file...' + req.file.mimetype);
-	        var filename = req.file.originalname;
-	        var uploadStatus = 'File Uploaded Successfully';
-	    } else {
-	        console.log('No File Uploaded');
-	        var filename = 'FILE NOT UPLOADED';
-	        var uploadStatus = 'File Upload Failed';
-	    }
+	
 	    
-	    /* ===== Add the function to save filename to database ===== */
-	    console.log(req.file.destination + req.file.filename);
-	    
-	  	var rawdata = fs.readFileSync(req.file.destination + req.file.filename);
-	  	//console.log(rawdata);
+    /* ===== Add the function to save filename to database ===== */
+    console.log(req.file.destination + req.file.filename);
+    
+  	if (!isCSV){
+  		var rawdata = fs.readFileSync(req.file.destination + req.file.filename);
 	  	let newJSONObj = utils.paserJSON(rawdata);  
 	  	console.log('Sanitized: end_utcseconds=', newJSONObj.end_utcseconds)
 	    console.log('Sanitized: start_utcseconds= ', newJSONObj.start_utcseconds) 
@@ -92,9 +126,33 @@ router.post('/upload', upload.single('userFile'), function (req, res, next) {
 	    utils.uploadToES("message_count_by_threat_level-"+indexSuffix , newJSONObj.message_count_by_threat_level, newJSONObj.start_utcseconds, newJSONObj.end_utcseconds);
 	    
 	    utils.uploadToES("threat_count_by_sender_domain-"+indexSuffix , newJSONObj.threat_count_by_sender_domain, newJSONObj.start_utcseconds, newJSONObj.end_utcseconds);
-	  	
-	    res.render('index.ejs', { csrfToken: req.csrfToken(), status: uploadStatus, filename: `Name Of File: ${filename}` });
-	})
+  	} 
+  	else {
+  		console.log("Reading file from :" + req.file.destination + req.file.filename);
+  		
+  		csv({flatKeys:true})
+  		.fromFile(req.file.destination + req.file.filename)
+  		.preFileLine((csvRawData, lineIdx)=>{
+  			if (csvRawData.charAt(0) == "\""){
+		 		csvRawData = csvRawData.substring(1, csvRawData.length);
+		 	}
+		 	var length = csvRawData.length;
+		 	if (csvRawData.charAt(length-1) == "\""){
+		 		csvRawData = csvRawData.substring(0, csvRawData.length-1);
+		 	}
+		 	csvRawData = csvRawData.replace(/""/g, '"'); //some fields have double double quotes
+	 		return csvRawData;
+  		})
+  		.then((jsonObj)=>{
+  			console.log(jsonObj);
+  			
+  			var indexSuffix = moment().format("YYYY.MM.DD")
+  		    console.log('Sanitized: start_utcseconds= ', indexSuffix) 
+  		    utils.uploadToES("csv-"+ indexSuffix , jsonObj, moment().unix(), moment().unix());
+  		})
+  	}
+    res.render('index.ejs', { csrfToken: req.csrfToken(), status: uploadStatus, filename: `Name Of File: ${filename}` });
+})
 
 router.get('/json', (req, res) => {
   res.render('json', {
